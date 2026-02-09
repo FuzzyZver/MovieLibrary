@@ -1,25 +1,37 @@
 package com.example.movielibrary
 
+import androidx.room.*
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.movielibrary.ui.theme.MovieLibraryTheme
+import androidx.lifecycle.lifecycleScope
+import com.example.movielibrary.data.*
+import com.example.movielibrary.ui.AppNavHost
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            MovieLibraryTheme {
 
+        var database = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "movies_db"
+        ).build()
+
+        var repository = MovieRepository(
+            movieDao = database.movieDao(),
+            categoryDao = database.categoryDao(),
+            historyDao = database.historyDao()
+        )
+
+        lifecycleScope.launch {
+            DatabaseSeeder.seed(database)
+        }
+
+        setContent {
+            setContent {
+                AppNavHost(repository = repository)
             }
         }
     }
